@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace Engage.UI.Editor
+namespace Engage.BuildTools
 {
     public static class GuiTools
     {
@@ -13,6 +14,9 @@ namespace Engage.UI.Editor
             window.Content = content;
             window.ShowUtility();
         }
+
+        public static GUIContent ResetButtonLabel => new GUIContent(Labels.Reset, Labels.ResetTooltip);
+        public static GUIContent BrowsePathLabel => new GUIContent(Labels.Ellipsis, Labels.BrowseTooltip);
 
         public static string ToIdString(this int id) => id < 0 ? "-" : id.ToString();
         public static string ToIdString(this int? id) => id.ToString() ?? "-";
@@ -52,12 +56,22 @@ namespace Engage.UI.Editor
             }
         }
 
-        public static void DrawColumnHeader(string label, Action action = null, params GUILayoutOption[] options)
+        public static void DrawHeader(string label, params GUILayoutOption[] options)
         {
-            DrawColumnHeader(new GUIContent(label), action, options);
+            DrawHeader(new GUIContent(label), null, options);
         }
 
-        public static void DrawColumnHeader(GUIContent label, Action action = null, params GUILayoutOption[] options)
+        public static void DrawHeader(string label, Action action, params GUILayoutOption[] options)
+        {
+            DrawHeader(new GUIContent(label), action, options);
+        }
+
+        public static void DrawHeader(GUIContent label, params GUILayoutOption[] options)
+        {
+            DrawHeader(label, null, options);
+        }
+
+        public static void DrawHeader(GUIContent label, Action action, params GUILayoutOption[] options)
         {
             if (GUILayout.Button(label, EditorStyles.boldLabel, options))
             {
@@ -80,9 +94,18 @@ namespace Engage.UI.Editor
             GUI.contentColor = wasColor;
         }
 
+        public static void DrawSearchBar(ref string search)
+        {
+            using (var searchField = new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Space(4);
+                search = EditorGUILayout.TextField(search, EditorStyles.toolbarSearchField);
+            }
+        }
+
         public static string BrowseFolderPath(string title, string startPath)
         {
-            var buildPath = new System.IO.DirectoryInfo(startPath);
+            var buildPath = new DirectoryInfo(startPath);
 
             if (!buildPath.Exists)
             {
@@ -98,7 +121,47 @@ namespace Engage.UI.Editor
             return string.IsNullOrEmpty(path) ? startPath : path;
         }
 
-        public static string FolderSelectionField(string label, string startPath)
+        public static string BrowseFilePath(string title, string startPath, string[] fileTypes = null)
+        {
+            string path = fileTypes != null ?
+                    EditorUtility.OpenFilePanelWithFilters(title, startPath, fileTypes) :
+                    EditorUtility.OpenFilePanel(title, startPath, "png");
+
+            return path;
+        }
+
+        public static string FolderSelectionField(string label, string startPath, bool showReset = true)
+        {
+            using (var labelPanel = new EditorGUILayout.HorizontalScope())
+            {
+                GuiTools.DrawHeader(label, GUILayout.Width(CreatorStyle.LONG_BUTTON_WIDTH));
+
+                if (showReset)
+                {
+                    if (GUILayout.Button(ResetButtonLabel, GUILayout.Height(20), GUILayout.Width(20)))
+                    {
+                        return null;
+                    }
+                }
+            }
+
+            using (var bundlePathPanel = new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
+            {
+                EditorGUILayout.SelectableLabel(startPath);
+                EditorGUILayout.LabelField(string.Empty, GUILayout.Width(30));
+
+                if (GUI.Button(new Rect(bundlePathPanel.rect.x + bundlePathPanel.rect.width - 30, bundlePathPanel.rect.y + (bundlePathPanel.rect.height * 0.5f) - 10, 20, 20), BrowsePathLabel))
+                {
+                    return BrowseFolderPath(label, startPath);
+                }
+                else
+                {
+                    return startPath;
+                }
+            }
+        }
+
+        public static string FileSelectionField(string label, string startPath)
         {
             EditorGUILayout.LabelField(label);
 
@@ -109,7 +172,7 @@ namespace Engage.UI.Editor
 
                 if (GUI.Button(new Rect(bundlePathPanel.rect.x + bundlePathPanel.rect.width - 30, bundlePathPanel.rect.y + (bundlePathPanel.rect.height * 0.5f) - 10, 20, 20), new GUIContent(Labels.Ellipsis)))
                 {
-                    return GuiTools.BrowseFolderPath(label, startPath);
+                    return BrowseFolderPath(label, startPath);
                 }
                 else
                 {
@@ -118,63 +181,85 @@ namespace Engage.UI.Editor
             }
         }
 
+        public static Texture2D LoadImageFromPath(string path)
+        {
+            var texture = new Texture2D(1, 1);
+
+            if (File.Exists(path))
+            {
+                var bytes = File.ReadAllBytes(path);
+                texture.LoadImage(bytes);
+                texture.name = Path.GetFileName(path);
+            }
+
+            return texture;
+        }
+
         public class EnabledScope : IDisposable
         {
-            private bool wasEnabled;
+            public bool WasEnabled { get; }
+            public bool Enabled { get; }
 
             public EnabledScope(bool enabled = false)
             {
-                wasEnabled = GUI.enabled;
-                GUI.enabled = enabled;
+                WasEnabled = GUI.enabled;
+                GUI.enabled = Enabled = enabled;
             }
 
             public void Dispose()
             {
-                GUI.enabled = wasEnabled;
+                GUI.enabled = WasEnabled;
             }
         }
 
         public class ColorScope : IDisposable
         {
-            private Color wasColor;
-            private Color wasBackgroundColor;
+            public Color WasColor { get; }
+            public Color Color { get; }
+            public Color WasBackgroundColor { get; }
+            public Color BackgroundColor { get; }
 
             public ColorScope(Color? color = null, Color? backgroundColor = null)
             {
-                wasColor = GUI.contentColor;
-                wasBackgroundColor = GUI.backgroundColor;
+                WasColor = Color = GUI.contentColor;
+                WasBackgroundColor = BackgroundColor = GUI.backgroundColor;
 
                 if (color.HasValue)
-                    GUI.contentColor = color.Value;
+                    GUI.contentColor = Color = color.Value;
 
                 if (backgroundColor.HasValue)
-                    GUI.backgroundColor = backgroundColor.Value;
+                    GUI.backgroundColor = BackgroundColor = backgroundColor.Value;
             }
 
             public void Dispose()
             {
-                GUI.contentColor = wasColor;
-                GUI.backgroundColor = wasBackgroundColor;
+                GUI.contentColor = WasColor;
+                GUI.backgroundColor = WasBackgroundColor;
             }
         }
 
         public class ScrollArea : IDisposable
         {
-            public EditorGUILayout.HorizontalScope ViewportScope { get; private set; }
-            public EditorGUILayout.ScrollViewScope ScrollViewScope { get; private set; }
-            public Vector2 ScrollPosition { get; set; }
-            public Rect Viewport { get; private set; }
+            public EditorGUILayout.HorizontalScope ViewportScope { get; }
+            public EditorGUILayout.ScrollViewScope ScrollViewScope { get; }
+            public Vector2 ScrollPosition { get; }
+            public Rect Viewport { get; }
 
-            public ScrollArea(Vector2 scrollPosition, params GUILayoutOption[] options) : this(scrollPosition, null, options) {}
+            [System.Obsolete("For backwards compatibility only")]
+            public ScrollArea(Vector2 scrollPosition, GUIStyle style, params GUILayoutOption[] options) : this(ref scrollPosition, style, options) { }
+            [System.Obsolete("For backwards compatibility only")]
+            public ScrollArea(Vector2 scrollPosition, params GUILayoutOption[] options) : this(ref scrollPosition, null, options) { }
 
-            public ScrollArea(Vector2 scrollPosition, GUIStyle style, params GUILayoutOption[] options)
+            public ScrollArea(ref Vector2 scrollPosition, params GUILayoutOption[] options) : this(ref scrollPosition, null, options) { }
+
+            public ScrollArea(ref Vector2 scrollPosition, GUIStyle style, params GUILayoutOption[] options)
             {
                 ViewportScope = new EditorGUILayout.HorizontalScope();
                 ScrollViewScope = style == null ? new EditorGUILayout.ScrollViewScope(scrollPosition, options)
                     : new EditorGUILayout.ScrollViewScope(scrollPosition, style, options);
 
-                ScrollPosition = ScrollViewScope.scrollPosition;
-                Viewport = new Rect(ScrollPosition, ViewportScope.rect.size);
+                scrollPosition = ScrollPosition = ScrollViewScope.scrollPosition;
+                Viewport = new Rect(scrollPosition, ViewportScope.rect.size);
             }
 
             public void Dispose()

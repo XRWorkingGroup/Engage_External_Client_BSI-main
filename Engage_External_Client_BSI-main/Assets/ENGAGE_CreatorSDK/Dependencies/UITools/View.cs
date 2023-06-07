@@ -1,8 +1,10 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
+using UnityEngine;
 
-namespace Engage.UI.Editor
+namespace Engage.BuildTools
 {
-    public abstract class View<T> : EditorWindow where T : ViewModel, new()
+    public class View<T> : EditorWindow, IView<T> where T : ViewModel, new()
     {
         protected T viewModel;
         public T ViewModel
@@ -12,6 +14,7 @@ namespace Engage.UI.Editor
                 if (viewModel == null)
                 {
                     viewModel = new T();
+                    viewModel.AddListener(this, OnViewModelUpdate);
                 }
 
                 return viewModel;
@@ -21,28 +24,76 @@ namespace Engage.UI.Editor
                 if (value == null)
                     return;
 
-                OnDisable();
                 viewModel = value;
-                OnEnable();
+                viewModel.AddListener(this, OnViewModelUpdate);
             }
         }
 
-        public event System.Action OnClose;
+        public bool IsOpen { get; protected set; }
+        public event Action OnOpen;
+        public event Action OnClose;
+        public event Action OnViewUpdate;
+
+        protected virtual void Awake()
+        {
+            Initialize();
+        }
 
         protected virtual void OnEnable()
         {
-            ViewModel.OnPropertyChanged += OnViewModelUpdate;
+            Enable();
         }
 
         protected virtual void OnDisable()
         {
-            ViewModel.OnPropertyChanged -= OnViewModelUpdate;
+            Disable();
+        }
+
+        protected virtual void OnGUI()
+        {
+            Draw();
+        }
+
+        protected virtual void Open()
+        {
+            ViewModel.Refresh();
+            Show();
+        }
+
+        protected virtual void Initialize() { }
+
+        protected virtual void OnViewModelUpdate(ViewModel viewModel, string property)
+        {
+            UpdateView();
+        }
+
+        public virtual void Enable()
+        {
+            IsOpen = true;
+            ViewModel.Enable();
+            OnOpen?.Invoke();
+        }
+
+        public virtual void Disable()
+        {
+            ViewModel.Disable();
+            IsOpen = false;
             OnClose?.Invoke();
         }
 
-        protected virtual void OnViewModelUpdate()
+        public virtual void Draw() { }
+
+        public virtual void UpdateView()
         {
+            OnViewUpdate?.Invoke();
             Repaint();
+        }
+
+        public void Center()
+        {
+            var position = this.position;
+            position.center = new Rect(0f, 0f, Screen.currentResolution.width, Screen.currentResolution.height).center;
+            this.position = position;
         }
     }
 }

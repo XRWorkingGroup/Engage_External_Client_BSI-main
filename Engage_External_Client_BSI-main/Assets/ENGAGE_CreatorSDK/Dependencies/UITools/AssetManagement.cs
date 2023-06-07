@@ -7,13 +7,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using System;
 
-namespace Engage.CreatorSDK
+namespace Engage.BuildTools
 {
     public static class AssetManagementSystemSetupUtility
     {
         private const string NewtonsoftJsonPackage = "com.unity.nuget.newtonsoft-json";
 
-        [MenuItem("ENGAGE/Add Newtonsoft Json Package")]
+        [MenuItem("ENGAGE/Add Newtonsoft Json Package", priority = 2101)]
         private async static Task AddNewtonsoftJsonPackage()
         {
             bool newtonsoftJsonInstalled = await CheckForDependencies();
@@ -83,7 +83,7 @@ namespace Engage.CreatorSDK
             }
         }
 
-        [MenuItem("ENGAGE/Setup Asset Management System")]
+        [MenuItem("ENGAGE/Setup Asset Management System", priority = 2102)]
         private async static void SetupAssetManagementSystem()
         {
             if (EditorUtility.DisplayDialog("Engage Asset Management System", "Install the Engage Asset Management System?", "OK", "Cancel"))

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Engage.UI.Editor
+namespace Engage.BuildTools
 {
 
     public class DataGrid<T>
@@ -55,10 +55,8 @@ namespace Engage.UI.Editor
             {
                 DrawHeaders(SourceList.Count > 0);
 
-                using (var scrollArea = new GuiTools.ScrollArea(scrollPosition, EditorStyles.helpBox))
+                using (var scrollArea = new GuiTools.ScrollArea(ref scrollPosition, EditorStyles.helpBox))
                 {
-                    scrollPosition = scrollArea.ScrollPosition;
-
                     DrawData();
                 }
             }

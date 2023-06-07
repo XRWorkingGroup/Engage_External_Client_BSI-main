@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Engage.UI.Editor
+namespace Engage.BuildTools
 {
     public class DataGridColumn<T>
     {

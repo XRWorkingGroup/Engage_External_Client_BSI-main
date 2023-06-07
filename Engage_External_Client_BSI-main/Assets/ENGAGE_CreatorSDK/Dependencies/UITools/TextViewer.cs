@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace Engage.UI.Editor
+namespace Engage.BuildTools
 {
     public class TextViewer : EditorWindow
     {
@@ -11,10 +11,8 @@ namespace Engage.UI.Editor
 
         private void OnGUI()
         {
-            using (var scrollarea = new GuiTools.ScrollArea(scrollPos))
+            using (var scrollarea = new GuiTools.ScrollArea(ref scrollPos))
             {
-                scrollPos = scrollarea.ScrollPosition;
-
                 EditorGUILayout.TextArea(Content);
             }
 

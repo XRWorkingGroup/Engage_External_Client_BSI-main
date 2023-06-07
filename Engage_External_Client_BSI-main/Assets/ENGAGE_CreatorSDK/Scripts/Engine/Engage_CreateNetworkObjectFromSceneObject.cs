@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Engage_CreateNetworkObjectFromSceneObject : MonoBehaviour
 {
@@ -12,30 +10,29 @@ public class Engage_CreateNetworkObjectFromSceneObject : MonoBehaviour
     [Header("",order = 5)]
 
     /// <summary>Unique object name (make sure this is scene-unique)</summary>
-    public string veryUniqueObjectName;
+    [SerializeField] private string veryUniqueObjectName;
 
     /// <summary>Enable gravity on rigidbody?</summary>
-    public bool gravityEnabled;
+    [SerializeField] private bool gravityEnabled;
 
     /// <summary>Should this object always be kinematic? (no physics)</summary>
-    public bool alwaysKinematic;
+    [SerializeField] private bool alwaysKinematic;
 
     /// <summary>String that can be applied and used for interactive games</summary>
-    public string optionalStringForGames;
+    [SerializeField] private string optionalStringForGames;
 
     /// <summary>Default is to use Bones tag</summary>
-    public bool dontChangeTag;
+    [SerializeField] private bool dontChangeTag;
 
-    /// <summary>Override for Ridigbody's Mass</summary>
-    public float rigidBodyMass = 1.0f;
+    /// <summary>Should this object collide with other network objects</summary>
+    [SerializeField] private bool allowSelfCollision;
 
-    /// <summary>Override for Ridigbody's Drag</summary>
-    public float rigidBodyDrag = 0.0f;
+    /// <summary>Allow this object to show up in recordings?</summary>
+    [SerializeField] private bool allowRecording = true;
 
-    /// <summary>Override for Ridigbody's Angular Drag</summary>
-    public float rigidBodyAngularDrag = 0.05f;
-
-
+    [Header("Advanced usage only - can cause unintended interactions")]
+    /// <summary> No real need to do this, unless trying to collide with local player body</summary>
+    [SerializeField] private bool dontChangeLayer;
 
     #region Network Object manual interface 
 

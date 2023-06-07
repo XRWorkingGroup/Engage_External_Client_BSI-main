@@ -1,18 +1,8 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace Engage.UI.Editor
+namespace Engage.BuildTools
 {
-    public class Labels
-    {
-        public const string CreateButton = "Create";
-        public const string NotAuthenticated = "User not currently authenticated";
-
-        public const string Checkbox = "☑";
-        public const string XButton = "✕";
-        public const string Ellipsis = "⋯";
-    }
-
     public static class CreatorStyle
     {
         #region Table Constants
@@ -29,33 +19,8 @@ namespace Engage.UI.Editor
         public const string ASC = "▲";
         public const string DESC = "▼";
 
-        private static GUIStyle rowStyleEven;
-        private static GUIStyle rowStyleOdd;
-
-        public static GUIStyle RowStyleEven
-        {
-            get
-            {
-                if (rowStyleEven == null)
-                {
-                    rowStyleEven = CreatorStyle.CreateStyle(background: CreatorStyle.ListEvenTone);
-                }
-
-                return rowStyleEven;
-            }
-        }
-        public static GUIStyle RowStyleOdd
-        {
-            get
-            {
-                if (rowStyleOdd == null)
-                {
-                    rowStyleOdd = CreatorStyle.CreateStyle(background: CreatorStyle.ListOddTone);
-                }
-
-                return rowStyleOdd;
-            }
-        }
+        public static GUIStyle RowStyleEven => CreateStyle(background: ListEvenTone);
+        public static GUIStyle RowStyleOdd => CreateStyle(background: ListOddTone);
         #endregion
 
         public static GUILayoutOption MaxExtraLongButton => GUILayout.MaxWidth(EXTRALONG_BUTTON_WIDTH);
@@ -102,7 +67,7 @@ namespace Engage.UI.Editor
 
         public static GUIStyle CreateStyle(GUIStyle baseStyle = null, Color? foreground = null, Color? background = null)
         {
-            var style = baseStyle != null ? new GUIStyle(EditorStyles.label) : new GUIStyle();
+            var style = baseStyle != null ? new GUIStyle(baseStyle) : new GUIStyle();
 
             if (foreground.HasValue)
             {

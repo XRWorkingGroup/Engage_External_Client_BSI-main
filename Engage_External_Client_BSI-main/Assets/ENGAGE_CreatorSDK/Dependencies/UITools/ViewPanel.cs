@@ -1,6 +1,6 @@
-﻿namespace Engage.UI.Editor
+﻿namespace Engage.BuildTools
 {
-    public class ViewPanel<T> : IView where T : ViewModel, new()
+    public class ViewPanel<T> : IView<T> where T : ViewModel, new()
     {
         protected T viewModel;
         public T ViewModel
@@ -25,6 +25,8 @@
             }
         }
 
+        public bool IsOpen { get; protected set; }
+        public event System.Action OnOpen;
         public event System.Action OnClose;
         public event System.Action OnViewUpdate;
 
@@ -43,13 +45,13 @@
 
         public virtual void Enable()
         {
-            UnityEngine.Debug.Log("View Enabled");
+            IsOpen = true;
             ViewModel.OnPropertyChanged += OnViewModelUpdate;
         }
 
         public virtual void Disable()
         {
-            UnityEngine.Debug.Log("View Disabled");
+            IsOpen = false;
             ViewModel.OnPropertyChanged -= OnViewModelUpdate;
         }
 
@@ -60,7 +62,12 @@
 
         public virtual void Draw() { }
 
-        protected virtual void OnViewModelUpdate()
+        protected virtual void OnViewModelUpdate(ViewModel viewModel, string property)
+        {
+            UpdateView();
+        }
+
+        public virtual void UpdateView()
         {
             OnViewUpdate?.Invoke();
         }

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Engage.UI.Editor
+namespace Engage.BuildTools
 {
     public enum SortOption
     {
-        None, ID, Name, PrettyName, Project, CreatedOn, LastUpdated, AssetType
+        None, ID, Name, PrettyName, Project, CreatedOn, LastUpdated, AssetType, AssetPrivacy,
+        Description
     }
 
     public enum SortDirection
